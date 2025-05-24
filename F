@@ -6,7 +6,7 @@ local up = Instance.new("TextButton")
 local down = Instance.new("TextButton")
 local onof = Instance.new("TextButton")
 local plus = Instance.new("TextButton")
-local speed = Instance.new("TextLabel")
+local speed = Instance.new("TextBox") -- Changed from TextLabel to TextBox
 local mine = Instance.new("TextButton")
 local closebutton = Instance.new("TextButton")
 local mini = Instance.new("TextButton")
@@ -192,7 +192,7 @@ onof.MouseLeave:Connect(function()
     onof.BackgroundColor3 = Color3.fromRGB(80, 60, 60)
 end)
 
--- Speed Display
+-- Speed Display (now a TextBox for input)
 speed.Name = "speed"
 speed.Parent = Frame
 speed.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -200,8 +200,12 @@ speed.Position = UDim2.new(0.3, 0, 0.65, 0)
 speed.Size = UDim2.new(0.2, 0, 0.25, 0)
 speed.Font = Enum.Font.GothamBold
 speed.Text = "1"
+speed.PlaceholderText = "Speed"
 speed.TextColor3 = Color3.fromRGB(220, 220, 220)
 speed.TextSize = 14
+speed.ClearTextOnFocus = false
+speed.TextScaled = false
+speed.TextWrapped = true
 
 -- Speed display corner
 local speedCorner = Instance.new("UICorner")
@@ -312,11 +316,38 @@ end)
 -- REST OF THE FUNCTIONALITY
 -- =============================================
 
-speeds = 1
+local speeds = 1
 local speaker = game:GetService("Players").LocalPlayer
 local chr = game.Players.LocalPlayer.Character
 local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-nowe = false
+local nowe = false
+
+-- Function to get current speed value
+local function getSpeed()
+    local num = tonumber(speed.Text)
+    if num and num > 0 then
+        return num
+    else
+        speed.Text = "1"
+        return 1
+    end
+end
+
+-- Function to set speed value
+local function setSpeed(value)
+    speeds = value
+    speed.Text = tostring(value)
+end
+
+-- Update speed when text changes
+speed.FocusLost:Connect(function(enterPressed)
+    local num = tonumber(speed.Text)
+    if num and num > 0 then
+        speeds = num
+    else
+        speed.Text = tostring(speeds)
+    end
+end)
 
 onof.MouseButton1Down:connect(function()
     if nowe == true then
@@ -341,7 +372,7 @@ onof.MouseButton1Down:connect(function()
     else
         nowe = true
         onof.BackgroundColor3 = Color3.fromRGB(60, 80, 60)
-        for i = 1, speeds do
+        for i = 1, getSpeed() do
             spawn(function()
                 local hb = game:GetService("RunService").Heartbeat             
                 tpwalking = true
@@ -385,7 +416,7 @@ onof.MouseButton1Down:connect(function()
         local deb = true
         local ctrl = {f = 0, b = 0, l = 0, r = 0}
         local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-        local maxspeed = 50
+        local maxspeed = getSpeed() * 10 -- Scale the speed
         local speed = 0
         local bg = Instance.new("BodyGyro", torso)
         bg.P = 9e4
@@ -435,7 +466,7 @@ onof.MouseButton1Down:connect(function()
         local deb = true
         local ctrl = {f = 0, b = 0, l = 0, r = 0}
         local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-        local maxspeed = 50
+        local maxspeed = getSpeed() * 10 -- Scale the speed
         local speed = 0
         local bg = Instance.new("BodyGyro", UpperTorso)
         bg.P = 9e4
@@ -522,11 +553,10 @@ game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
 end)
 
 plus.MouseButton1Down:connect(function()
-    speeds = speeds + 1
-    speed.Text = speeds
+    setSpeed(getSpeed() + 1)
     if nowe == true then
         tpwalking = false
-        for i = 1, speeds do
+        for i = 1, getSpeed() do
             spawn(function()
                 local hb = game:GetService("RunService").Heartbeat             
                 tpwalking = true
@@ -543,16 +573,15 @@ plus.MouseButton1Down:connect(function()
 end)
 
 mine.MouseButton1Down:connect(function()
-    if speeds == 1 then
-        speed.Text = 'cannot be less than 1'
+    if getSpeed() == 1 then
+        speed.Text = 'cannot be < 1'
         wait(1)
-        speed.Text = speeds
+        speed.Text = tostring(speeds)
     else
-        speeds = speeds - 1
-        speed.Text = speeds
+        setSpeed(getSpeed() - 1)
         if nowe == true then
             tpwalking = false
-            for i = 1, speeds do
+            for i = 1, getSpeed() do
                 spawn(function()
                     local hb = game:GetService("RunService").Heartbeat             
                     tpwalking = true
